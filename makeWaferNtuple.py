@@ -80,7 +80,7 @@ for event in tree:
                                                     "type":tc_wafertype[n],
                                                     "perEvtTrgOcc":[0]*nEvents,
                                                     "perEvtDAQOcc":[0]*nEvents,
-                                                    "perEvtTrgData":[[-1.]*nTrigs]*nEvents,
+                                                    "perEvtTrgData":[[-1 for __i in range(nTrigs)] for __j in range(nEvents)],
                                                     }
 
 
