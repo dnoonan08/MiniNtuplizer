@@ -5,6 +5,7 @@ from numpy import mean
 
 MaxEntries = 10e9
 subsetCuts = ""
+#subsetCuts = "(subdet==3&&z>0&&layer==15&&wafer==118)"
 
 def thresholdAlgorithm(tc_mipPt,theshold):
     countAboveThresh = 0
@@ -12,7 +13,18 @@ def thresholdAlgorithm(tc_mipPt,theshold):
         if mipPt >= theshold:
             countAboveThresh += 1
 
-    dataRate = (countAboveThresh+1)*bitsPerTC
+    dataRate = (countAboveThresh+1)*(bitsPerTC+6)
+
+    return dataRate
+
+
+def thresholdAlgorithm2(tc_mipPt,theshold):
+    countAboveThresh = 0
+    for mipPt in tc_mipPt:
+        if mipPt >= theshold:
+            countAboveThresh += 1
+
+    dataRate = (countAboveThresh+1)*bitsPerTC + 48
 
     return dataRate
 
@@ -58,7 +70,7 @@ print eventList
 print eventList.GetN()
 
 
-f = TFile( 'test_miniNtuple.root', 'recreate' )
+f = TFile( 'miniNtuple.root', 'recreate' )
 t2 = TTree( 'miniNtuple', 'miniNtuple' )
 
 subdet    = array( 'i', [ 0 ] )
@@ -72,6 +84,7 @@ z         = array( 'f', [ 0. ] )
 AvgTrgOcc = array( 'f', [ 0. ] )
 trgOcc    = array( 'f', nEvents*[ 0.] )
 trg_bitRate_alg1    = array( 'i', nEvents*[ 0 ] )
+trg_bitRate_alg1_2    = array( 'i', nEvents*[ 0 ] )
 trg_bitRate_alg2    = array( 'i', nEvents*[ 0 ] )
 trg_bitRate_alg3    = array( 'i', nEvents*[ 0 ] )
 
@@ -86,6 +99,7 @@ t2.Branch('z'        , z        , 'z/F'               )
 t2.Branch('AvgTrgOcc', AvgTrgOcc, 'AvgTrgOcc/F'       )
 t2.Branch('trgOcc'   , trgOcc   , 'trgOcc[%i]/F'%nEvents )
 t2.Branch('trg_bitRate_alg1'   , trg_bitRate_alg1   , 'trg_bitRate_alg1[%i]/I'%nEvents )
+t2.Branch('trg_bitRate_alg1_2'   , trg_bitRate_alg1_2   , 'trg_bitRate_alg1_2[%i]/I'%nEvents )
 t2.Branch('trg_bitRate_alg2'   , trg_bitRate_alg2   , 'trg_bitRate_alg2[%i]/I'%nEvents )
 t2.Branch('trg_bitRate_alg3'   , trg_bitRate_alg3   , 'trg_bitRate_alg3[%i]/I'%nEvents )
 
@@ -109,7 +123,9 @@ for iEntry in range(nWafers):
     for evt in range(nEventsPerWafer):
         trgOcc[evt]    = inputTree.trgOcc[evt]
         mipPtData = eval("inputTree.mipPt%i"%evt)
+
         trg_bitRate_alg1[evt] = thresholdAlgorithm(mipPtData,2)
+        trg_bitRate_alg1_2[evt] = thresholdAlgorithm2(mipPtData,2)
         trg_bitRate_alg2[evt] = readoutWaferIfTCAboveThresh(mipPtData,2)
         trg_bitRate_alg3[evt] = readoutHGROCIfTCAboveThresh(mipPtData,16,2)
     t2.Fill()
